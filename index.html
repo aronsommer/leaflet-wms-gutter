@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leaflet WMS Gutter Demo</title>
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+
+    <!-- Leaflet JS -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <!-- WMS Gutter Plugin -->
+    <script src="leaflet-wms-gutter.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      #map {
+        position: absolute;
+        top: 60px;
+        bottom: 0;
+        width: 100%;
+      }
+
+      .header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: #333;
+        color: white;
+        padding: 10px 20px;
+        box-sizing: border-box;
+        z-index: 1000;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 20px;
+      }
+
+      .header p {
+        margin: 5px 0 0 0;
+        font-size: 12px;
+        opacity: 0.8;
+      }
+
+      .info {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        max-width: 320px;
+        z-index: 1000;
+        font-size: 13px;
+      }
+
+      .info h3 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+      }
+
+      .info code {
+        background: #f4f4f4;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Leaflet WMS Gutter Demo</h1>
+      <p>Compare WMS layers with and without gutter - toggle layers to see the difference!</p>
+    </div>
+
+    <div id="map"></div>
+
+    <div class="info">
+      <h3>Compare the Difference</h3>
+      <p>Toggle the layers to see how gutter prevents icon clipping at tile boundaries.</p>
+      <ul style="margin: 10px 0; padding-left: 20px; font-size: 12px">
+        <li><strong style="color: #d9534f">Without gutter</strong> - icons cut off</li>
+        <li><strong style="color: #5cb85c">With gutter</strong> - icons complete</li>
+      </ul>
+      <p style="font-size: 11px; margin-top: 8px; opacity: 0.7">
+        Data:
+        <a href="https://map.geo.admin.ch/?layers=ch.vbs.bundestankstellen-bebeco" target="_blank"
+          >map.geo.admin.ch</a
+        >
+      </p>
+    </div>
+
+    <script>
+      // Initialize map centered on Switzerland
+      const map = L.map("map").setView([46.8, 8.2], 8);
+
+      // Add OpenStreetMap base layer
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+      }).addTo(map);
+
+      // Layer WITHOUT gutter (standard Leaflet WMS)
+      const wmsLayerNoGutter = L.tileLayer.wms("https://wms.geo.admin.ch/", {
+        layers: "ch.vbs.bundestankstellen-bebeco",
+        format: "image/png",
+        transparent: true,
+        attribution: '&copy; <a href="https://www.geo.admin.ch/">swisstopo</a>',
+        tileSize: 512,
+      });
+
+      // Layer WITH gutter (using the plugin)
+      const wmsLayerWithGutter = L.tileLayer.wms.gutter("https://wms.geo.admin.ch/", {
+        layers: "ch.vbs.bundestankstellen-bebeco",
+        format: "image/png",
+        transparent: true,
+        attribution: '&copy; <a href="https://www.geo.admin.ch/">swisstopo</a>',
+        tileSize: 512,
+        gutter: 64, // 64 pixels of overlap on each side
+      });
+
+      // Add layer control to toggle between the two
+      L.control
+        .layers(
+          {},
+          {
+            "❌ Without gutter (icons cut off)": wmsLayerNoGutter,
+            "✅ With gutter (icons complete)": wmsLayerWithGutter,
+          },
+          { position: "topright", collapsed: false }
+        )
+        .addTo(map);
+
+      // Start with the WITH gutter layer visible
+      wmsLayerWithGutter.addTo(map);
+
+      console.log("Demo loaded successfully!");
+      console.log("Toggle both layers to compare the difference!");
+    </script>
+  </body>
+</html>
